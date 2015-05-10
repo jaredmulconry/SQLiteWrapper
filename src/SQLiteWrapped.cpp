@@ -98,9 +98,9 @@ namespace Sqlt3
 	{
 		return invoke_with_result(::sqlite3_bind_parameter_index, s, name);
 	}
-	utf8_string_out_t sqlite3_bind_parameter_name(sqlite3_stmt_t s, int index)
+	utf8_string_out_t sqlite3_bind_parameter_name(sqlite3_stmt_t s, int i)
 	{
-		auto str = invoke_with_result(::sqlite3_bind_parameter_name, s, index);
+		auto str = invoke_with_result(::sqlite3_bind_parameter_name, s, i);
 		if(str == nullptr) return utf8_string_out_t();
 		return str;
 	}
