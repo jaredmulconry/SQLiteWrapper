@@ -17,5 +17,5 @@ SQLITE_STATUS\_\*.
 9. Functions that create objects that must be cleaned up shall be returned as  
 `std::unique_ptr<T>` with a custom deleter for clean-up and will have the type  
 name unique\_\*.  
-10. Multiple results are returned in a `std::tuple`, in the order they appear 
+10. Multiple results are returned in a `std::tuple`, in the order they appear  
 in the original function declaration from left to right.  
