@@ -36,9 +36,11 @@
 
 namespace Sqlt3
 {
-	ALIAS_TYPE(::sqlite3*, connection_t);
-	ALIAS_TYPE(::sqlite3_stmt*, statement_t);
-	ALIAS_TYPE(::sqlite3_value*, value_t);
+	ALIAS_TYPE(::sqlite3*, sqlite3_t);
+	ALIAS_TYPE(::sqlite3_stmt*, sqlite3_stmt_t);
+	ALIAS_TYPE(::sqlite3_value*, sqlite3_value_t);
+	ALIAS_TYPE(::sqlite3_int64, sqlite3_int64_t);
+	ALIAS_TYPE(::sqlite3_uint64, sqlite3_uint64_t);
 
 	namespace detail
 	{
@@ -137,12 +139,12 @@ namespace Sqlt3
 		};
 		struct ConnectionDeleter
 		{
-			ALIAS_TYPE(connection_t, pointer);
+			ALIAS_TYPE(sqlite3_t, pointer);
 			void operator()(pointer p) const NOEXCEPT_SPEC;
 		};
 		struct StatementDeleter
 		{
-			ALIAS_TYPE(statement_t, pointer);
+			ALIAS_TYPE(sqlite3_stmt_t, pointer);
 			void operator()(pointer p) const NOEXCEPT_SPEC;
 		};
 		struct initialize_t
@@ -277,52 +279,52 @@ namespace Sqlt3
 	const CONSTEXPR_SPEC auto sqlite_stmtstatus_vm_step =
 		status_counter_t(SQLITE_STMTSTATUS_VM_STEP);
 
-	void sqlite3_bind(statement_t, int, const void*, int, void (*)(void*));
-	void sqlite3_bind(statement_t, int, const void*, sqlite3_uint64,
+	void sqlite3_bind(sqlite3_stmt_t, int, const void*, int, void (*)(void*));
+	void sqlite3_bind(sqlite3_stmt_t, int, const void*, sqlite3_uint64_t,
 					  void (*)(void*));
-	void sqlite3_bind(statement_t, int, double);
-	void sqlite3_bind(statement_t, int, int);
-	void sqlite3_bind(statement_t, int, sqlite3_int64);
-	void sqlite3_bind(statement_t, int, const value_t);
-	void sqlite3_bind(statement_t, int);
-	int sqlite3_bind_parameter_count(statement_t) NOEXCEPT_SPEC;
-	int sqlite3_bind_parameter_index(statement_t,
+	void sqlite3_bind(sqlite3_stmt_t, int, double);
+	void sqlite3_bind(sqlite3_stmt_t, int, int);
+	void sqlite3_bind(sqlite3_stmt_t, int, sqlite3_int64_t);
+	void sqlite3_bind(sqlite3_stmt_t, int, const sqlite3_value_t);
+	void sqlite3_bind(sqlite3_stmt_t, int);
+	int sqlite3_bind_parameter_count(sqlite3_stmt_t) NOEXCEPT_SPEC;
+	int sqlite3_bind_parameter_index(sqlite3_stmt_t,
 									 utf8_string_in_t) NOEXCEPT_SPEC;
-	utf8_string_out_t sqlite3_bind_parameter_name(statement_t, int);
-	void sqlite3_bind_text(statement_t, int, utf8_string_in_t);
-	void sqlite3_bind_text(statement_t, int, utf8_string_in_t,
+	utf8_string_out_t sqlite3_bind_parameter_name(sqlite3_stmt_t, int);
+	void sqlite3_bind_text(sqlite3_stmt_t, int, utf8_string_in_t);
+	void sqlite3_bind_text(sqlite3_stmt_t, int, utf8_string_in_t,
 						   detail::text_encoding_t);
-	void sqlite3_bind_text(statement_t, int, utf16_string_in_t);
-	void sqlite3_bind_zeroblob(statement_t, int, int);
+	void sqlite3_bind_text(sqlite3_stmt_t, int, utf16_string_in_t);
+	void sqlite3_bind_zeroblob(sqlite3_stmt_t, int, int);
 
-	int sqlite3_changes(connection_t) NOEXCEPT_SPEC;
+	int sqlite3_changes(sqlite3_t) NOEXCEPT_SPEC;
 
-	void sqlite3_clear_bindings(statement_t);
+	void sqlite3_clear_bindings(sqlite3_stmt_t);
 
 	void sqlite3_close(unique_connection&&);
 	void sqlite3_close_v2(unique_connection);
 
-	std::tuple<const void*, int> sqlite3_column_blob(statement_t,
+	std::tuple<const void*, int> sqlite3_column_blob(sqlite3_stmt_t,
 													 int) NOEXCEPT_SPEC;
-	int sqlite3_column_count(statement_t) NOEXCEPT_SPEC;
-	double sqlite3_column_double(statement_t, int) NOEXCEPT_SPEC;
-	int sqlite3_column_int(statement_t, int) NOEXCEPT_SPEC;
-	sqlite3_int64 sqlite3_column_int64(statement_t, int) NOEXCEPT_SPEC;
-	utf8_string_out_t sqlite3_column_name(statement_t, int);
-	utf16_string_out_t sqlite3_column_name16(statement_t, int);
-	utf8_string_out_t sqlite3_column_text(statement_t, int);
-	utf16_string_out_t sqlite3_column_text16(statement_t, int);
-	detail::type_t sqlite3_column_type(statement_t, int) NOEXCEPT_SPEC;
-	value_t sqlite3_column_value(statement_t, int) NOEXCEPT_SPEC;
+	int sqlite3_column_count(sqlite3_stmt_t) NOEXCEPT_SPEC;
+	double sqlite3_column_double(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
+	int sqlite3_column_int(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
+	sqlite3_int64_t sqlite3_column_int64(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
+	utf8_string_out_t sqlite3_column_name(sqlite3_stmt_t, int);
+	utf16_string_out_t sqlite3_column_name16(sqlite3_stmt_t, int);
+	utf8_string_out_t sqlite3_column_text(sqlite3_stmt_t, int);
+	utf16_string_out_t sqlite3_column_text16(sqlite3_stmt_t, int);
+	detail::type_t sqlite3_column_type(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
+	sqlite3_value_t sqlite3_column_value(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
 
-	void sqlite3_exec(connection_t, utf8_string_in_t,
+	void sqlite3_exec(sqlite3_t, utf8_string_in_t,
 					  int (*)(void*, int, char**, char**), void*);
 
 	void sqlite3_finalize(unique_statement&&);
 
 	detail::initialize_t sqlite3_initialize();
 
-	statement_t sqlite3_next_stmt(connection_t, statement_t) NOEXCEPT_SPEC;
+	sqlite3_stmt_t sqlite3_next_stmt(sqlite3_t, sqlite3_stmt_t) NOEXCEPT_SPEC;
 
 	unique_connection sqlite3_open(utf8_string_in_t);
 	unique_connection sqlite3_open(utf16_string_in_t);
@@ -330,40 +332,42 @@ namespace Sqlt3
 									  utf8_string_in_t);
 
 	std::tuple<unique_statement, utf8_string_in_t>
-		sqlite3_prepare(connection_t, utf8_string_in_t);
+		sqlite3_prepare(sqlite3_t, utf8_string_in_t);
 	std::tuple<unique_statement, utf8_string_in_t>
-		sqlite3_prepare_v2(connection_t, utf8_string_in_t);
+		sqlite3_prepare_v2(sqlite3_t, utf8_string_in_t);
 	std::tuple<unique_statement, utf16_string_in_t>
-		sqlite3_prepare(connection_t, utf16_string_in_t);
+		sqlite3_prepare(sqlite3_t, utf16_string_in_t);
 	std::tuple<unique_statement, utf16_string_in_t>
-		sqlite3_prepare_v2(connection_t, utf16_string_in_t);
+		sqlite3_prepare_v2(sqlite3_t, utf16_string_in_t);
 
-	void* sqlite3_profile(connection_t,
-						  void (*)(void*, const char*, sqlite3_uint64),
+	void* sqlite3_profile(sqlite3_t,
+						  void (*)(void*, const char*, sqlite3_uint64_t),
 						  void*) NOEXCEPT_SPEC;
 
-	void sqlite3_reset(statement_t);
+	void sqlite3_reset(sqlite3_stmt_t);
 
 	inline void sqlite3_shutdown(detail::initialize_t)
 	{
 	}
 
 	std::tuple<int, int> sqlite3_status(status_t, bool);
-	std::tuple<sqlite3_int64, sqlite3_int64> sqlite3_status64(status_t, bool);
+	std::tuple<sqlite3_int64_t, sqlite3_int64_t> sqlite3_status64(status_t,
+																  bool);
 
-	detail::step_result_t sqlite3_step(statement_t);
+	detail::step_result_t sqlite3_step(sqlite3_stmt_t);
 
-	bool sqlite3_stmt_busy(statement_t) NOEXCEPT_SPEC;
-	bool sqlite3_stmt_readonly(statement_t) NOEXCEPT_SPEC;
-	int sqlite3_stmt_status(statement_t, status_counter_t, bool) NOEXCEPT_SPEC;
+	bool sqlite3_stmt_busy(sqlite3_stmt_t) NOEXCEPT_SPEC;
+	bool sqlite3_stmt_readonly(sqlite3_stmt_t) NOEXCEPT_SPEC;
+	int sqlite3_stmt_status(sqlite3_stmt_t, status_counter_t,
+							bool) NOEXCEPT_SPEC;
 
 	std::tuple<utf8_string_out_t, utf8_string_out_t, int, int, int>
-		sqlite3_table_column_metadata(connection_t, utf8_string_in_t,
+		sqlite3_table_column_metadata(sqlite3_t, utf8_string_in_t,
 									  utf8_string_in_t, utf8_string_in_t);
 
-	int sqlite3_total_changes(connection_t) NOEXCEPT_SPEC;
+	int sqlite3_total_changes(sqlite3_t) NOEXCEPT_SPEC;
 
-	void* sqlite3_trace(connection_t, void (*)(void*, const char*),
+	void* sqlite3_trace(sqlite3_t, void (*)(void*, const char*),
 						void*) NOEXCEPT_SPEC;
 }
 
