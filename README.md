@@ -9,13 +9,13 @@ The rules used for wrapping the SQLite3 library are as follows:
 2. Matching type names will be suffixed with _\_t_.  
 3. Throw exception on error.  
 4. Return output parameters.  
-5. Non-error flags each have a unique type. eg. _SQLITE_OPEN _ \*_ and  
-_SQLITE_STATUS _ \*_.  
+5. Non-error flags each have a unique type. eg. _SQLITE_OPEN_\*_ and  
+_SQLITE_STATUS_\*_.  
 6. Constant values become constant variables of the same name (in lower case).  
-7. UTF-16 characters will be of type _char16 _ t_.  
+7. UTF-16 characters will be of type _char16_t_.  
 8. Output strings are returned as _std::basic_string_.  
 9. Functions that create objects that must be cleaned up shall be returned as  
 _std::unique_ptr<T>_ with a custom deleter for clean-up and will have the type  
-name _unique _ \*_.  
+name _unique_\*_.  
 10. Multiple results are returned in a _std::tuple_, in the order they appear in  
 the original function declaration from left to right.  
