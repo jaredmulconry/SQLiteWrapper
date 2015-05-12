@@ -5,29 +5,29 @@ Licence:
 	Copyright (c) 2015 Jared Mulconry
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
+	of this software and associated documentation files (the "Software"), to
+	deal in the Software without restriction, including without limitation the
+	rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+	sell copies of the Software, and to permit persons to whom the Software is
 	furnished to do so, subject to the following conditions:
 
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+	IN THE SOFTWARE.
 
 Purpose:
 	A very thin wrapper around SQLite3, written in C++.
 	The C interface of SQLite3 is a good interface for the most part.
 	The goal of this wrapper is to add type safety where it is useful,
-	apply RAII to outputs and generally make the library cleaner to call 
-	from C++.  
+	apply RAII to outputs and generally make the library cleaner to call
+	from C++.
 */
 
 #include "SQLiteWrapped.hpp"
@@ -90,13 +90,14 @@ namespace Sqlt3
 	}
 
 	void sqlite3_bind(sqlite3_stmt_t s, int i, const void* blob, int bytes,
-					  void (*destructor)(void*))
+					  sqlite3_destructor_type_t destructor)
 	{
 		invoke_with_result_error(::sqlite3_bind_blob, s, i, blob, bytes,
 								 destructor);
 	}
 	void sqlite3_bind(sqlite3_stmt_t s, int i, const void* blob,
-					  sqlite3_uint64_t bytes, void (*destructor)(void*))
+					  sqlite3_uint64_t bytes,
+					  sqlite3_destructor_type_t destructor)
 	{
 		invoke_with_result_error(::sqlite3_bind_blob64, s, i, blob, bytes,
 								 destructor);
@@ -141,7 +142,7 @@ namespace Sqlt3
 		invoke_with_result_error(::sqlite3_bind_text, s, i, str,
 								 utf8_traits::length(str) *
 									 sizeof(utf8_traits::char_type),
-								 SQLITE_TRANSIENT);
+								 sqlite_transient);
 	}
 	void sqlite3_bind_text(sqlite3_stmt_t s, int i, utf8_string_in_t str,
 						   text_encoding_t encoding)
@@ -151,7 +152,7 @@ namespace Sqlt3
 		invoke_with_result_error(::sqlite3_bind_text64, s, i, str,
 								 utf8_traits::length(str) *
 									 sizeof(utf8_traits::char_type),
-								 SQLITE_TRANSIENT,
+								 sqlite_transient,
 								 static_cast<encode_t>(encoding));
 	}
 	void sqlite3_bind_text(sqlite3_stmt_t s, int i, utf16_string_in_t str)
@@ -160,7 +161,7 @@ namespace Sqlt3
 								 static_cast<const void*>(str),
 								 utf16_traits::length(str) *
 									 sizeof(utf16_traits::char_type),
-								 SQLITE_TRANSIENT);
+								 sqlite_transient);
 	}
 	void sqlite3_bind_zeroblob(sqlite3_stmt_t s, int i, int n)
 	{

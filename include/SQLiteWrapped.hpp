@@ -5,29 +5,29 @@ Licence:
 	Copyright (c) 2015 Jared Mulconry
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
+	of this software and associated documentation files (the "Software"), to
+	deal in the Software without restriction, including without limitation the
+	rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+	sell copies of the Software, and to permit persons to whom the Software is
 	furnished to do so, subject to the following conditions:
 
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
 
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+	IN THE SOFTWARE.
 
 Purpose:
 	A very thin wrapper around SQLite3, written in C++.
 	The C interface of SQLite3 is a good interface for the most part.
 	The goal of this wrapper is to add type safety where it is useful,
-	apply RAII to outputs and generally make the library cleaner to call 
-	from C++.  
+	apply RAII to outputs and generally make the library cleaner to call
+	from C++.
 */
 
 #if !defined(SQLITEWRAPPED_HPP)
@@ -207,22 +207,85 @@ namespace Sqlt3
 		};
 	}
 
+	///<summary>
+	/// Alias of a function pointer type that represents a generic destructor
+	/// for data passed to SQLite3.
+	/// Constants <see cref="sqlite_static"/> and <see cref="sqlite_transient"/>
+	/// are also valid.
+	///</summary>
+	ALIAS_TYPE(::sqlite3_destructor_type, sqlite3_destructor_type_t);
+	///<summary>
+	/// A flag type to specify how a database connection should be established.
+	///</summary>
 	ALIAS_TYPE(detail::openflag_t, openflag_t);
+	///<summary>
+	/// The result of stepping a prepared statement.
+	///</summary>
 	ALIAS_TYPE(detail::step_result_t, step_result_t);
+	///<summary>
+	/// A flag type that controls what data is reported from
+	///<see cref="sqlite3_status"/> and <see cref="sqlite3_status64"/>.
+	///</summary>
 	ALIAS_TYPE(detail::status_t, status_t);
+	///<summary>
+	/// A flag type that controls what counter information is reported from
+	///<see cref="sqlite3_stmt_status"/>.
+	///</summary>
 	ALIAS_TYPE(detail::status_counter_t, status_counter_t);
+	///<summary>
+	/// A flag type that specifies text encoding.
+	///</summary>
 	ALIAS_TYPE(detail::text_encoding_t, text_encoding_t);
+	///<summary>
+	/// Represents the possible types of a table column.
+	///</summary>
 	ALIAS_TYPE(detail::type_t, type_t);
+	///<summary>
+	/// RAII wrapper of a database connection. Upon destruction, automatically
+	/// closes the connection. Errors on closure are not thrown.
+	///</summary>
 	ALIAS_TYPE(
 		WRAP_TEMPLATE(std::unique_ptr<sqlite3, detail::ConnectionDeleter>),
 		unique_connection);
+	///<summary>
+	/// RAII wrapper of a prepared statement. Upon destruction, automatically
+	/// closes the connection. Errors on closure are not thrown.
+	///</summary>
 	ALIAS_TYPE(
 		WRAP_TEMPLATE(std::unique_ptr<sqlite3_stmt, detail::StatementDeleter>),
 		unique_statement);
+	///<summary>
+	/// An alias of UTF-8 input strings.
+	///</summary>
 	ALIAS_TYPE(const char*, utf8_string_in_t);
+	///<summary>
+	/// An alias of UTF-8 output strings.
+	///</summary>
 	ALIAS_TYPE(std::string, utf8_string_out_t);
+	///<summary>
+	/// An alias of UTF-16 input strings.
+	///</summary>
 	ALIAS_TYPE(const char16_t*, utf16_string_in_t);
+	///<summary>
+	/// An alias of UTF-16 output strings.
+	///</summary>
 	ALIAS_TYPE(std::u16string, utf16_string_out_t);
+
+	///<summary>
+	/// A constant that takes the place of a custom destructor for some
+	/// functions. This is interpreted as the provided data is constant, will
+	/// never change for the life of the program and do not need to be
+	/// destroyed.
+	///</summary>
+	const CONSTEXPR_SPEC auto sqlite_static =
+		sqlite3_destructor_type_t(SQLITE_STATIC);
+	///<summary>
+	/// A constant that takes the place of a custom destructor for some
+	/// functions. This is interpreted as the provided data is likely to change
+	/// after the call. SQLite will make a private copy of the data.
+	///</summary>
+	const CONSTEXPR_SPEC auto sqlite_transient =
+		sqlite3_destructor_type_t(SQLITE_TRANSIENT);
 
 	const CONSTEXPR_SPEC auto sqlite_open_readonly =
 		openflag_t(SQLITE_OPEN_READONLY);
@@ -230,27 +293,37 @@ namespace Sqlt3
 		openflag_t(SQLITE_OPEN_READWRITE);
 	const CONSTEXPR_SPEC auto sqlite_open_create =
 		openflag_t(SQLITE_OPEN_CREATE);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_deleteonclose =
 		openflag_t(SQLITE_OPEN_DELETEONCLOSE);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_exclusive =
 		openflag_t(SQLITE_OPEN_EXCLUSIVE);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_autoproxy =
 		openflag_t(SQLITE_OPEN_AUTOPROXY);
 	const CONSTEXPR_SPEC auto sqlite_open_uri = openflag_t(SQLITE_OPEN_URI);
 	const CONSTEXPR_SPEC auto sqlite_open_memory =
 		openflag_t(SQLITE_OPEN_MEMORY);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_main_db =
 		openflag_t(SQLITE_OPEN_MAIN_DB);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_temp_db =
 		openflag_t(SQLITE_OPEN_TEMP_DB);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_transient_db =
 		openflag_t(SQLITE_OPEN_TRANSIENT_DB);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_main_journal =
 		openflag_t(SQLITE_OPEN_MAIN_JOURNAL);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_temp_journal =
 		openflag_t(SQLITE_OPEN_TEMP_JOURNAL);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_subjournal =
 		openflag_t(SQLITE_OPEN_SUBJOURNAL);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_master_journal =
 		openflag_t(SQLITE_OPEN_MASTER_JOURNAL);
 	const CONSTEXPR_SPEC auto sqlite_open_nomutex =
@@ -261,6 +334,7 @@ namespace Sqlt3
 		openflag_t(SQLITE_OPEN_SHAREDCACHE);
 	const CONSTEXPR_SPEC auto sqlite_open_privatecache =
 		openflag_t(SQLITE_OPEN_PRIVATECACHE);
+	///<summary>Not valid to pass to <see cref="sqlite3_open_v2"/></summary>
 	const CONSTEXPR_SPEC auto sqlite_open_wal = openflag_t(SQLITE_OPEN_WAL);
 
 	const CONSTEXPR_SPEC auto sqlite_ok = step_result_t(SQLITE_OK);
@@ -311,43 +385,313 @@ namespace Sqlt3
 	const CONSTEXPR_SPEC auto sqlite_stmtstatus_vm_step =
 		status_counter_t(SQLITE_STMTSTATUS_VM_STEP);
 
-	void sqlite3_bind(sqlite3_stmt_t, int, const void*, int, void (*)(void*));
-	void sqlite3_bind(sqlite3_stmt_t, int, const void*, sqlite3_uint64_t,
-					  void (*)(void*));
-	void sqlite3_bind(sqlite3_stmt_t, int, double);
-	void sqlite3_bind(sqlite3_stmt_t, int, int);
-	void sqlite3_bind(sqlite3_stmt_t, int, sqlite3_int64_t);
-	void sqlite3_bind(sqlite3_stmt_t, int, const sqlite3_value_t);
-	void sqlite3_bind(sqlite3_stmt_t, int);
-	int sqlite3_bind_parameter_count(sqlite3_stmt_t) NOEXCEPT_SPEC;
-	int sqlite3_bind_parameter_index(sqlite3_stmt_t,
-									 utf8_string_in_t) NOEXCEPT_SPEC;
-	utf8_string_out_t sqlite3_bind_parameter_name(sqlite3_stmt_t, int);
-	void sqlite3_bind_text(sqlite3_stmt_t, int, utf8_string_in_t);
-	void sqlite3_bind_text(sqlite3_stmt_t, int, utf8_string_in_t,
-						   detail::text_encoding_t);
-	void sqlite3_bind_text(sqlite3_stmt_t, int, utf16_string_in_t);
-	void sqlite3_bind_zeroblob(sqlite3_stmt_t, int, int);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a blob of data to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind the data to.</param>
+	///<param name="blob">Blob of arbitrary data to bind.</param>
+	///<param name="bytes">Number of bytes in <paramref name="blob"/>.</param>
+	///<param name="destruct">A destructor function for <paramref name="blob"/>.
+	///</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index, const void* blob,
+					  int bytes, sqlite3_destructor_type_t destruct);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a blob of data to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind the data to.</param>
+	///<param name="blob">Blob of arbitrary data to bind.</param>
+	///<param name="bytes">Number of bytes in <paramref name="blob"/>.</param>
+	///<param name="destruct">A destructor function for <paramref name="blob"/>.
+	///</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index, const void* blob,
+					  sqlite3_uint64_t bytes,
+					  sqlite3_destructor_type_t destruct);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a double to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind the data to.</param>
+	///<param name="data">Data to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index, double data);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds an integer to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind the data to.</param>
+	///<param name="data">Data to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index, int data);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a 64-bit integer to a specified bind point in a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind the data to.</param>
+	///<param name="data">Data to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index, sqlite3_int64_t data);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a generic value to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind the data to.</param>
+	///<param name="data">Data to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index,
+					  const sqlite3_value_t data);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds null to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement with bind points.</param>
+	///<param name="index">Index of a bind point to bind null to.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind(sqlite3_stmt_t stmt, int index);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_parameter_count.html"/>.
+	/// Retrieve the number of bind points in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<returns>Number of bind points.</returns>
+	///<remarks>This routine actually returns the index of the largest
+	///(rightmost) parameter. For all forms except ?NNN, this will correspond to
+	/// the number of unique parameters. If parameters of the ?NNN form are
+	/// used,
+	/// there may be gaps in the list.</remarks>
+	int sqlite3_bind_parameter_count(sqlite3_stmt_t stmt) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_parameter_index.html"/>.
+	/// Retrieve the index of a bind point in a prepared statement by its name.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="name">Bind point name.</param>
+	///<returns>Bind point index or 0 if not found.</returns>
+	int sqlite3_bind_parameter_index(sqlite3_stmt_t stmt,
+									 utf8_string_in_t name) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_parameter_name.html"/>.
+	/// Retrieve the name of a bind point of a prepared statement by its index.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="index">Index of a bind point.</param>
+	///<returns>The name of the bind point.</returns>
+	///<exception name="std::runtime_error"/>
+	///<remarks>The first bind point has an index of 1, not 0.</remarks>
+	utf8_string_out_t sqlite3_bind_parameter_name(sqlite3_stmt_t stmt,
+												  int index);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a UTF-8 string to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="index">Index of a bind point.</param>
+	///<param name="text">Text to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind_text(sqlite3_stmt_t stmt, int index,
+						   utf8_string_in_t text);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a UTF-16 string to a specified bind point in a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="index">Index of a bind point.</param>
+	///<param name="text">Text to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind_text(sqlite3_stmt_t stmt, int index,
+						   utf16_string_in_t text);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a string with some encoding to a specified bind point in a
+	/// prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="index">Index of a bind point.</param>
+	///<param name="text">Text to bind.</param>
+	///<param name="encode">Encoding of the text.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind_text(sqlite3_stmt_t stmt, int index,
+						   utf8_string_in_t text,
+						   detail::text_encoding_t encode);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.
+	/// Binds a zero-initialised blob to a specified bind point in a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="index">Index of a bind point.</param>
+	///<param name="bytes">Number of zeroed bytes to bind.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_bind_zeroblob(sqlite3_stmt_t stmt, int index, int bytes);
 
-	int sqlite3_changes(sqlite3_t) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/changes.html"/>.
+	/// This function returns the number of rows modified, inserted or deleted
+	/// by the most recently completed INSERT, UPDATE or DELETE statement on the
+	/// database connection specified.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<returns>Number of row modifications.</returns>
+	///
+	int sqlite3_changes(sqlite3_t connection) NOEXCEPT_SPEC;
 
-	void sqlite3_clear_bindings(sqlite3_stmt_t);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/clear_bindings.html"/>.
+	/// Resets the value of all bind points to null.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_clear_bindings(sqlite3_stmt_t stmt);
 
-	void sqlite3_close(unique_connection&&);
-	void sqlite3_close_v2(unique_connection);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/close.html"/>.
+	/// Closes an existing database connection. This should be preferred over
+	/// automatic closing, as this interface can report any errors that occur
+	/// during closing.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_close(unique_connection&& connection);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/close.html"/>.
+	/// Closes an existing database connection. This should be preferred over
+	/// automatic closing, as this interface can report any errors that occur
+	/// during closing.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<exception name="std::runtime_error"/>
+	///<remarks>Does not fail to close the connection if prepared
+	/// statements, blob handles or backup objects still exists.</remarks>
+	void sqlite3_close_v2(unique_connection connection);
 
-	std::tuple<const void*, int> sqlite3_column_blob(sqlite3_stmt_t,
-													 int) NOEXCEPT_SPEC;
-	int sqlite3_column_count(sqlite3_stmt_t) NOEXCEPT_SPEC;
-	double sqlite3_column_double(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
-	int sqlite3_column_int(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
-	sqlite3_int64_t sqlite3_column_int64(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
-	utf8_string_out_t sqlite3_column_name(sqlite3_stmt_t, int);
-	utf16_string_out_t sqlite3_column_name16(sqlite3_stmt_t, int);
-	utf8_string_out_t sqlite3_column_text(sqlite3_stmt_t, int);
-	utf16_string_out_t sqlite3_column_text16(sqlite3_stmt_t, int);
-	detail::type_t sqlite3_column_type(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
-	sqlite3_value_t sqlite3_column_value(sqlite3_stmt_t, int) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves a generic blob result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result
+	/// from.</param>
+	///<returns>The blob of data and the number of bytes the data
+	/// occupies.</returns>
+	///<remarks>The leftmost column of the result set has the index 0.
+	/// May only be called if the most recent call to <see cref="sqlite3_step"/>
+	/// returned <see cref="sqlite_row"/> and neither
+	///<see cref="sqlite3_reset"/> nor <see cref="sqlite3_finalize"/> have been
+	/// called subsequently.
+	///</remarks>
+	std::tuple<const void*, int> sqlite3_column_blob(sqlite3_stmt_t stmt,
+													 int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_count.html"/>.
+	/// Retrieves the number of columns in the evaluated prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<returns>Number of columns in result.</returns>
+	int sqlite3_column_count(sqlite3_stmt_t stmt) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves a double result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>Double from the provided column.</returns>
+	double sqlite3_column_double(sqlite3_stmt_t stmt, int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves an int result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>Int from the provided column.</returns>
+	int sqlite3_column_int(sqlite3_stmt_t stmt, int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves a 64-bit integer result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>64-bit integer from the provided column.</returns>
+	sqlite3_int64_t sqlite3_column_int64(sqlite3_stmt_t stmt,
+										 int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_name.html"/>.
+	/// Retrieves the name of the indexed column in the result set of a select
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the name of.</param>
+	///<returns>The column name.</returns>
+	utf8_string_out_t sqlite3_column_name(sqlite3_stmt_t stmt, int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_name.html"/>.
+	/// Retrieves the name of the indexed column in the result set of a select
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the name of.</param>
+	///<returns>The column name.</returns>
+	///<remarks>The name of a result column is the value of the "AS" clause for
+	/// that column, if there is an AS clause. If there is no AS clause then the
+	/// name of the column is unspecified and may change from one release of
+	/// SQLite to the next. </remarks>
+	utf16_string_out_t sqlite3_column_name16(sqlite3_stmt_t stmt, int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves a UTF-8 string result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>UTF-8 string from the provided column.</returns>
+	utf8_string_out_t sqlite3_column_text(sqlite3_stmt_t stmt, int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves a UTF-16 string result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>UTF-16 string from the provided column.</returns>
+	utf16_string_out_t sqlite3_column_text16(sqlite3_stmt_t stmt, int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves the type of the indicated column of a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>Type of indicated column.</returns>
+	type_t sqlite3_column_type(sqlite3_stmt_t stmt, int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	/// Retrieves a generic value result from the provided column of a prepared
+	/// statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>Generic value from the provided column.</returns>
+	sqlite3_value_t sqlite3_column_value(sqlite3_stmt_t stmt,
+										 int column) NOEXCEPT_SPEC;
 
 	void sqlite3_exec(sqlite3_t, utf8_string_in_t,
 					  int (*)(void*, int, char**, char**), void*);
@@ -360,7 +704,7 @@ namespace Sqlt3
 
 	unique_connection sqlite3_open(utf8_string_in_t);
 	unique_connection sqlite3_open(utf16_string_in_t);
-	unique_connection sqlite3_open_v2(utf8_string_in_t, detail::openflag_t,
+	unique_connection sqlite3_open_v2(utf8_string_in_t, openflag_t,
 									  utf8_string_in_t);
 
 	std::tuple<unique_statement, utf8_string_in_t>
@@ -386,7 +730,7 @@ namespace Sqlt3
 	std::tuple<sqlite3_int64_t, sqlite3_int64_t> sqlite3_status64(status_t,
 																  bool);
 
-	detail::step_result_t sqlite3_step(sqlite3_stmt_t);
+	step_result_t sqlite3_step(sqlite3_stmt_t);
 
 	bool sqlite3_stmt_busy(sqlite3_stmt_t) NOEXCEPT_SPEC;
 	bool sqlite3_stmt_readonly(sqlite3_stmt_t) NOEXCEPT_SPEC;
