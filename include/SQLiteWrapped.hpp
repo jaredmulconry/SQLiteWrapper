@@ -179,10 +179,10 @@ namespace Sqlt3
 			ALIAS_TYPE(sqlite3_stmt_t, pointer);
 			void operator()(pointer p) const NOEXCEPT_SPEC;
 		};
-		struct initialize_t
+		class initialize_t
 		{
 			bool moved = false;
-
+		public:
 			initialize_t() NOEXCEPT_SPEC = default;
 			initialize_t(const initialize_t&) = delete;
 			initialize_t(initialize_t&& x) NOEXCEPT_SPEC;
@@ -638,6 +638,7 @@ namespace Sqlt3
 	///<param name="stmt">Prepared statement.</param>
 	///<param name="column">Index of a column to retrieve the name of.</param>
 	///<returns>The column name.</returns>
+	///<exception name="std::runtime_error"/>
 	utf8_string_out_t sqlite3_column_name(sqlite3_stmt_t stmt, int column);
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/column_name.html"/>.
@@ -647,6 +648,7 @@ namespace Sqlt3
 	///<param name="stmt">Prepared statement.</param>
 	///<param name="column">Index of a column to retrieve the name of.</param>
 	///<returns>The column name.</returns>
+	///<exception name="std::runtime_error"/>
 	///<remarks>The name of a result column is the value of the "AS" clause for
 	/// that column, if there is an AS clause. If there is no AS clause then the
 	/// name of the column is unspecified and may change from one release of
@@ -661,6 +663,7 @@ namespace Sqlt3
 	///<param name="column">Index of a column to retrieve the result from.
 	///</param>
 	///<returns>UTF-8 string from the provided column.</returns>
+	///<exception name="std::runtime_error"/>
 	utf8_string_out_t sqlite3_column_text(sqlite3_stmt_t stmt, int column);
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
@@ -671,6 +674,7 @@ namespace Sqlt3
 	///<param name="column">Index of a column to retrieve the result from.
 	///</param>
 	///<returns>UTF-16 string from the provided column.</returns>
+	///<exception name="std::runtime_error"/>
 	utf16_string_out_t sqlite3_column_text16(sqlite3_stmt_t stmt, int column);
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
@@ -693,19 +697,88 @@ namespace Sqlt3
 	sqlite3_value_t sqlite3_column_value(sqlite3_stmt_t stmt,
 										 int column) NOEXCEPT_SPEC;
 
-	void sqlite3_exec(sqlite3_t, utf8_string_in_t,
-					  int (*)(void*, int, char**, char**), void*);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/exec.html"/>.
+	/// Wraps calls to <see cref="sqlite3_prepare_v2"/>, <see
+	/// cref="sqlite3_step"/> and <see cref="sqlite3_finalize"/> that allows an
+	/// application to run multiple statements of SQL without having to write a
+	/// lot of code.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="sql">SQL statement(s).</param>
+	///<param name="callback">A callback function to be invoked for each result
+	///row. 
+	///Arg1: <paramref name="data"/>.
+	///Arg2: The number of columns in the result.
+	/// Arg3: Results for each column in the result, as if 
+	///<see cref="sqlite3_column_text"/> were called for each valid column 
+	///index.
+	/// Arg4: The names of each column in the result.
+	///</param>
+	///<param name="data">Data to pass to the callback.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_exec(sqlite3_t connection, utf8_string_in_t sql,
+					  int (*callback)(void*, int, char**, char**), void* data);
 
-	void sqlite3_finalize(unique_statement&&);
+	///<summary
+	///<see cref="https://www.sqlite.org/c3ref/finalize.html"/>.
+	///Destroys a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_finalize(unique_statement&& stmt);
 
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/initialize.html"/>.
+	///Initialises the SQLite3 library.
+	///</summary>
+	///<returns>RAII type that invokes <see cref=""/> upon destruction.
+	///</returns>
+	///<exception name="std::runtime_error"/>
 	detail::initialize_t sqlite3_initialize();
 
-	sqlite3_stmt_t sqlite3_next_stmt(sqlite3_t, sqlite3_stmt_t) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/next_stmt.html"/>.
+	///Retrieves the next prepared statement associated with the provided
+	///database connection.
+	///</summary>
+	///<param cref="connection">Database connection.</param>
+	///<param cref="stmt">Prepared statement.</param>
+	///<returns>The next prepared statement.</returns>
+	///<remarks>If <paramref name="stmt"/> is nullptr, the first prepared
+	///statement associated with the database connection.</remarks>
+	sqlite3_stmt_t sqlite3_next_stmt(sqlite3_t connection,
+									 sqlite3_stmt_t stmt) NOEXCEPT_SPEC;
 
-	unique_connection sqlite3_open(utf8_string_in_t);
-	unique_connection sqlite3_open(utf16_string_in_t);
-	unique_connection sqlite3_open_v2(utf8_string_in_t, openflag_t,
-									  utf8_string_in_t);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/open.html"/>.
+	///Opens a database file.
+	///</summary>
+	///<param name="filename">Name of the database file.</param>
+	///<returns>RAII wrapped database connection.</returns>
+	///<exception name="std::runtime_error"/>
+	unique_connection sqlite3_open(utf8_string_in_t filename);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/open.html"/>.
+	///Opens a database file.
+	///</summary>
+	///<param name="filename">Name of the database file.</param>
+	///<returns>RAII wrapped database connection.</returns>
+	///<exception name="std::runtime_error"/>
+	unique_connection sqlite3_open(utf16_string_in_t filename);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/open.html"/>.
+	///Opens a database file.
+	///</summary>
+	///<param name="filename">Name of the database file.</param>
+	///<param name="flags">Flags of type <see cref="openflag_t"/>. See the link
+	///above for more information.</param>
+	///<param name="vfs">The name of a Virtual File System. Or nullptr for
+	///default.</param>
+	///<returns>RAII wrapped database connection.</returns>
+	///<exception name="std::runtime_error"/>
+	unique_connection sqlite3_open_v2(utf8_string_in_t filename, openflag_t flags,
+									  utf8_string_in_t vfs);
 
 	std::tuple<unique_statement, utf8_string_in_t>
 		sqlite3_prepare(sqlite3_t, utf8_string_in_t);
