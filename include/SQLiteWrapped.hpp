@@ -582,16 +582,35 @@ namespace Sqlt3
 	///<param name="stmt">Prepared statement.</param>
 	///<param name="column">Index of a column to retrieve the result
 	/// from.</param>
-	///<returns>The blob of data and the number of bytes the data
-	/// occupies.</returns>
+	///<returns>The blob of data.</returns>
 	///<remarks>The leftmost column of the result set has the index 0.
 	/// May only be called if the most recent call to <see cref="sqlite3_step"/>
 	/// returned <see cref="sqlite_row"/> and neither
 	///<see cref="sqlite3_reset"/> nor <see cref="sqlite3_finalize"/> have been
 	/// called subsequently.
 	///</remarks>
-	std::tuple<const void*, int> sqlite3_column_blob(sqlite3_stmt_t stmt,
-													 int column) NOEXCEPT_SPEC;
+	const void* sqlite3_column_blob(sqlite3_stmt_t stmt,
+									int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	///Retrieves the number of bytes in a generic blob or UTF-8 string result
+	/// from the provided column of a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>Numbers of bytes in the result.</returns>
+	int sqlite3_column_bytes(sqlite3_stmt_t stmt, int column) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
+	///Retrieves the number of bytes in a generic blob or UTF-16 string result
+	/// from the provided column of a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Index of a column to retrieve the result from.
+	///</param>
+	///<returns>Numbers of bytes in the result.</returns>
+	int sqlite3_column_bytes16(sqlite3_stmt_t stmt, int column) NOEXCEPT_SPEC;
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/column_count.html"/>.
 	/// Retrieves the number of columns in the evaluated prepared statement.

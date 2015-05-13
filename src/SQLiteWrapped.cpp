@@ -188,12 +188,17 @@ namespace Sqlt3
 		invoke_with_result_error(::sqlite3_close_v2, c.get());
 	}
 
-	std::tuple<const void*, int> sqlite3_column_blob(sqlite3_stmt_t s,
-													 int i) NOEXCEPT_SPEC
+	const void* sqlite3_column_blob(sqlite3_stmt_t s, int i) NOEXCEPT_SPEC
 	{
-		return std::make_tuple(invoke_with_result(::sqlite3_column_blob, s, i),
-							   invoke_with_result(::sqlite3_column_bytes, s,
-												  i));
+		return invoke_with_result(::sqlite3_column_blob, s, i);
+	}
+	int sqlite3_column_bytes(sqlite3_stmt_t s, int i) NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_column_bytes, s, i);
+	}
+	int sqlite3_column_bytes16(sqlite3_stmt_t s, int i) NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_column_bytes16, s, i);
 	}
 	int sqlite3_column_count(sqlite3_stmt_t s) NOEXCEPT_SPEC
 	{
