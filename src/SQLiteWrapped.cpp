@@ -363,6 +363,10 @@ namespace Sqlt3
 		return invoke_with_result(::sqlite3_profile, c, callback, d);
 	}
 
+	void sqlite3_shutdown(detail::initialize_t init)
+	{	
+	}
+
 	std::tuple<int, int> sqlite3_status(status_t s, bool r)
 	{
 		ALIAS_TYPE(WRAP_TEMPLATE(std::underlying_type<status_t>::type),
@@ -415,7 +419,7 @@ namespace Sqlt3
 								  static_cast<int>(r));
 	}
 
-	std::tuple<utf8_string_out_t, utf8_string_out_t, int, int, int>
+	std::tuple<utf8_string_out_t, utf8_string_out_t, bool, bool, bool>
 		sqlite3_table_column_metadata(sqlite3_t c, utf8_string_in_t db,
 									  utf8_string_in_t t, utf8_string_in_t col)
 	{
@@ -427,8 +431,8 @@ namespace Sqlt3
 								 &autoInc);
 
 		return std::make_tuple(utf8_string_out_t{type},
-							   utf8_string_out_t{colSeq}, notNull, primaryKey,
-							   autoInc);
+							   utf8_string_out_t{colSeq}, notNull != 0,
+							   primaryKey != 0, autoInc != 0);
 	}
 
 	int sqlite3_total_changes(sqlite3_t c) NOEXCEPT_SPEC

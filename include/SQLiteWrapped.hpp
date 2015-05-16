@@ -751,7 +751,8 @@ namespace Sqlt3
 	///<see cref="https://www.sqlite.org/c3ref/initialize.html"/>.
 	///Initialises the SQLite3 library.
 	///</summary>
-	///<returns>RAII type that invokes <see cref=""/> upon destruction.
+	///<returns>RAII type that invokes <see cref="sqlite3_shutdown"/> upon 
+	///destruction.
 	///</returns>
 	///<exception name="std::runtime_error"/>
 	detail::initialize_t sqlite3_initialize();
@@ -799,44 +800,192 @@ namespace Sqlt3
 	unique_connection sqlite3_open_v2(utf8_string_in_t filename, openflag_t flags,
 									  utf8_string_in_t vfs);
 
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/prepare.html"/>.
+	///Generates a prepared statement from SQL text.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="sql">SQL text.</param>
+	///<returns>The prepared statement and the position in the SQL text that has
+	///been parsed upto.</returns>
+	///<exception name="std::runtime_error"/>
 	std::tuple<unique_statement, utf8_string_in_t>
-		sqlite3_prepare(sqlite3_t, utf8_string_in_t);
+		sqlite3_prepare(sqlite3_t connection, utf8_string_in_t sql);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/prepare.html"/>.
+	///Generates a prepared statement from SQL text.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="sql">SQL text.</param>
+	///<returns>The prepared statement and the position in the SQL text that has
+	///been parsed upto.</returns>
+	///<exception name="std::runtime_error"/>
 	std::tuple<unique_statement, utf8_string_in_t>
-		sqlite3_prepare_v2(sqlite3_t, utf8_string_in_t);
+		sqlite3_prepare_v2(sqlite3_t connection, utf8_string_in_t sql);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/prepare.html"/>.
+	///Generates a prepared statement from SQL text.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="sql">SQL text.</param>
+	///<returns>The prepared statement and the position in the SQL text that has
+	///been parsed upto.</returns>
+	///<exception name="std::runtime_error"/>
 	std::tuple<unique_statement, utf16_string_in_t>
-		sqlite3_prepare(sqlite3_t, utf16_string_in_t);
+		sqlite3_prepare(sqlite3_t connection, utf16_string_in_t sql);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/prepare.html"/>.
+	///Generates a prepared statement from SQL text.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="sql">SQL text.</param>
+	///<returns>The prepared statement and the position in the SQL text that has
+	///been parsed upto.</returns>
+	///<exception name="std::runtime_error"/>
 	std::tuple<unique_statement, utf16_string_in_t>
-		sqlite3_prepare_v2(sqlite3_t, utf16_string_in_t);
+		sqlite3_prepare_v2(sqlite3_t connection, utf16_string_in_t sql);
 
-	void* sqlite3_profile(sqlite3_t,
-						  void (*)(void*, const char*, sqlite3_uint64_t),
-						  void*) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/profile.html"/>.
+	///Registers a callback for profiling SQL statement execution.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="profiler">Profiling callback.
+	///Arg1: <paramref name="data"/>.
+	///Arg2: The statement text that was executed.
+	///Arg3: Time taken by the statement. Measured in nanoseconds.
+	///</param>
+	///<param name="data">Data to pass to the callback.</param>
+	///<returns>Unspecified.</returns>
+	void* sqlite3_profile(sqlite3_t connection,
+						  void (*profiler)(void*, const char*, sqlite3_uint64_t),
+						  void* data) NOEXCEPT_SPEC;
 
-	void sqlite3_reset(sqlite3_stmt_t);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/reset.html"/>.
+	///Resets a prepared statement to its initial state. Does not affect values 
+	///bound to bind points of the provided prepared statement, for that, you
+	///should call <see cref="sqlite3_clear_bindings"/>.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_reset(sqlite3_stmt_t stmt);
 
-	inline void sqlite3_shutdown(detail::initialize_t)
-	{
-	}
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/initialize.html"/>.
+	///Deallocates any resources allocated by <see cref="sqlite3_initialize"/>.
+	///</summary>
+	///<param name="init">RAII wrapper produced by 
+	///<see cref="sqlite3_initialize"/>.
+	///</param>
+	void sqlite3_shutdown(detail::initialize_t init);
 
-	std::tuple<int, int> sqlite3_status(status_t, bool);
-	std::tuple<sqlite3_int64_t, sqlite3_int64_t> sqlite3_status64(status_t,
-																  bool);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/status.html"/>.
+	/// Retrieves SQLite runtime status counters.
+	///</summary>
+	///<param name="status">A flag indicating which counters to retrieve.
+	///</param>
+	///<param name="reset">Resets the counters for the specified status.</param>
+	///<returns>The current counter value and the highest recorded value.
+	///</returns>
+	///<exception name="std::runtime_error"/>
+	std::tuple<int, int> sqlite3_status(status_t status, bool reset);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/status.html"/>.
+	/// Retrieves SQLite runtime status counters.
+	///</summary>
+	///<param name="status">A flag indicating which counters to retrieve.
+	///</param>
+	///<param name="reset">Resets the counters for the specified status.</param>
+	///<returns>The current counter value and the highest recorded value.
+	///</returns>
+	///<exception name="std::runtime_error"/>
+	std::tuple<sqlite3_int64_t, sqlite3_int64_t>
+		sqlite3_status64(status_t status, bool reset);
 
-	step_result_t sqlite3_step(sqlite3_stmt_t);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/step.html"/>.
+	///Evaluates a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<returns>The result of this evaluation.</returns>
+	///<exception name="std::runtime_error"/>
+	///<remarks>See the constants defined above for the possible values returned
+	///by this function.</remarks>
+	step_result_t sqlite3_step(sqlite3_stmt_t stmt);
 
-	bool sqlite3_stmt_busy(sqlite3_stmt_t) NOEXCEPT_SPEC;
-	bool sqlite3_stmt_readonly(sqlite3_stmt_t) NOEXCEPT_SPEC;
-	int sqlite3_stmt_status(sqlite3_stmt_t, status_counter_t,
-							bool) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/stmt_busy.html"/>.
+	///Checks whether the provided prepared statement is busy. Where busy means
+	///it has been passed to <see cref="sqlite3_step"/>, but not run to 
+	///completion, and has not been reset using <see cref="sqlite3_reset"/>.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<returns>Whether the prepared statement is busy.</returns>
+	bool sqlite3_stmt_busy(sqlite3_stmt_t stmt) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/stmt_busy.html"/>.
+	///Checks whether the provided prepared statement is read-only.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<returns>Whether the prepared statement is read-only. Will be true
+	/// only if the prepared statement makes no direct changes to the content of
+	/// the database file.</returns>
+	bool sqlite3_stmt_readonly(sqlite3_stmt_t stmt) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/stmt_scanstatus.html"/>.
+	///Retrieves the value of various counters from a prepared statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="status">The counter to query.</param>
+	///<param name="reset">Whether the counter should be reset.</param>
+	///<returns>The value of the desired counter.</returns>
+	int sqlite3_stmt_status(sqlite3_stmt_t stmt, status_counter_t status,
+							bool reset) NOEXCEPT_SPEC;
 
-	std::tuple<utf8_string_out_t, utf8_string_out_t, int, int, int>
-		sqlite3_table_column_metadata(sqlite3_t, utf8_string_in_t,
-									  utf8_string_in_t, utf8_string_in_t);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/table_column_metadata.html"/>.
+	///Retrieve the metadata of a column in table in a database.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="database">Name of a database.</param>
+	///<param name="table">Name of a table in the database.</param>
+	///<param name="column">Name of a column in the table.</param>
+	///<returns>The type of data, name of default collation sequence, if it has
+	///the NOT NULL constraint, if it is part of the PRIMARY KEY and if it is
+	///AUTOINCREMENT.</returns>
+	///<exception name="std::runtime_error"/>
+	std::tuple<utf8_string_out_t, utf8_string_out_t, bool, bool, bool>
+		sqlite3_table_column_metadata(sqlite3_t connection,
+									  utf8_string_in_t database,
+									  utf8_string_in_t table,
+									  utf8_string_in_t column);
 
-	int sqlite3_total_changes(sqlite3_t) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/total_changes.html"/>
+	///Retrieves the total number of rows inserted, modified or deleted since 
+	///the database connection was opened.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<returns>Total changes.</returns>
+	int sqlite3_total_changes(sqlite3_t connection) NOEXCEPT_SPEC;
 
-	void* sqlite3_trace(sqlite3_t, void (*)(void*, const char*),
-						void*) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/profile.html"/>.
+	///Register a callback for tracing the execution of SQL statements on the 
+	///provided database connection.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="tracer">Callback for tracing.
+	///Arg1: <paramref name="data"/>.
+	///Arg2: UTF-8 rendering of the statement text as it first starts
+	///executing.</param>
+	///<param name="data">Data to pass to the callback.</param>
+	///<returns>Unspecified</returns>
+	void* sqlite3_trace(sqlite3_t connection,
+						void (*tracer)(void*, const char*),
+						void* data) NOEXCEPT_SPEC;
 }
 
 #define SQLITEWRAPPED_HPP
