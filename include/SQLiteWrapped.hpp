@@ -70,6 +70,7 @@ namespace Sqlt3
 {
 	ALIAS_TYPE(::sqlite3*, sqlite3_t);
 	ALIAS_TYPE(::sqlite3_stmt*, sqlite3_stmt_t);
+	ALIAS_TYPE(::sqlite3_backup*, sqlite3_backup_t);
 	ALIAS_TYPE(::sqlite3_value*, sqlite3_value_t);
 	ALIAS_TYPE(::sqlite3_int64, sqlite3_int64_t);
 	ALIAS_TYPE(::sqlite3_uint64, sqlite3_uint64_t);
@@ -169,6 +170,11 @@ namespace Sqlt3
 				return res;
 			}
 		};
+		struct BackupDeleter
+		{
+			ALIAS_TYPE(sqlite3_backup_t, pointer);
+			void operator()(pointer p)const NOEXCEPT_SPEC;
+		};
 		struct ConnectionDeleter
 		{
 			ALIAS_TYPE(sqlite3_t, pointer);
@@ -219,7 +225,7 @@ namespace Sqlt3
 	///</summary>
 	ALIAS_TYPE(detail::openflag_t, openflag_t);
 	///<summary>
-	/// The result of stepping a prepared statement.
+	/// The result of stepping a prepared statement or backup process.
 	///</summary>
 	ALIAS_TYPE(detail::step_result_t, step_result_t);
 	///<summary>
@@ -240,6 +246,14 @@ namespace Sqlt3
 	/// Represents the possible types of a table column.
 	///</summary>
 	ALIAS_TYPE(detail::type_t, type_t);
+	///<summary>
+	///RAII wrapper of a backup process. Upon destruction, automatically
+	/// releases all resources allocated by the backup process. Errors on
+	/// closure are not thrown.
+	///</summary>
+	ALIAS_TYPE(
+		WRAP_TEMPLATE(std::unique_ptr<sqlite3_backup_t, detail::BackupDeleter>),
+		unique_backup);
 	///<summary>
 	/// RAII wrapper of a database connection. Upon destruction, automatically
 	/// closes the connection. Errors on closure are not thrown.
@@ -384,6 +398,60 @@ namespace Sqlt3
 		status_counter_t(SQLITE_STMTSTATUS_AUTOINDEX);
 	const CONSTEXPR_SPEC auto sqlite_stmtstatus_vm_step =
 		status_counter_t(SQLITE_STMTSTATUS_VM_STEP);
+
+	///<summary>
+	///<see
+	///cref="https://www.sqlite.org/c3ref/backup_finish.html#sqlite3backupfinish"/>.
+	///Releases all resources acquired as part of the backup process.
+	///</summary>
+	///<param name="backup">RAII wrapper of a backup process.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_backup_finish(unique_backup&& backup);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/backup_finish.html"/>.
+	///Starts up a backup process.
+	///</summary>
+	///<param name="destinationConnection">The destination connection.</param>
+	///<param name="destinationDbName">Name of the destination database.</param>
+	///<param name="sourceConnection">The source connection.</param>
+	///<param name="sourceDbName">Name of the source database.</param>
+	///<returns>RAII wrapper around the new backup process.</returns>
+	///<exception name="std::runtime_error"/>
+	unique_backup sqlite3_backup_init(sqlite3_t destinationConnection,
+									  utf8_string_in_t destinationDbName,
+									  sqlite3_t sourceConnection,
+									  utf8_string_in_t sourceDbName);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/backup_finish.html"/>.
+	/// Retrieves the total number of pages remaining in the source database
+	/// after the most recent call to <see cref="sqlite3_backup_step"/>.
+	///</summary>
+	///<param name="backup">Backup process.</param>
+	///<returns>Total pages remaining in source.</returns>
+	int sqlite3_backup_pagecount(sqlite3_backup_t backup) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/backup_finish.html"/>.
+	///Retrieves the number of pages still to be backed up after the most recent
+	///call to <see cref="sqlite3_backup_step"/>.
+	///</summary>
+	///<param name="backup">Backup process.</param>
+	///<returns>Number of pages yet to be backed up.</returns>
+	int sqlite3_backup_remaining(sqlite3_backup_t backup) NOEXCEPT_SPEC;
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/backup_finish.html"/>.
+	///Copy up to <paramref name="numPages"/> pages from the source database
+	///to the destination.
+	///</summary>
+	///<param name="backup">Backup process.</param>
+	///<param name="numPages">Number of pages to copy. If negative, all
+	///remaining pages are copied.</param>
+	///<returns>
+	///<see cref="sqlite_ok"/> if all pages were copied successfully, <see
+	///cref="sqlite_done"/> if all remaining pages were copied successfully.
+	///All other results are errors and are thrown.
+	///</returns>
+	///<exception name="std::runtime_error"/>
+	step_result_t sqlite3_backup_step(sqlite3_backup_t backup, int numPages);
 
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/bind_blob.html"/>.

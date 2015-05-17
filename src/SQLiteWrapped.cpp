@@ -65,10 +65,13 @@ namespace Sqlt3
 	}
 
 	template <typename F, typename... Args>
-	inline void invoke_with_result_error(F&& f, Args&&... args)
+	inline auto invoke_with_result_error(F&& f, Args&&... args)
+		-> decltype(std::forward<F>(f)(std::forward<Args>(args)...))
 	{
 		auto result_code = std::forward<F>(f)(std::forward<Args>(args)...);
 		if(result_is_error(result_code)) throw_error(result_code, args...);
+
+		return result_code;
 	}
 	template <typename F, typename... Args>
 	inline auto invoke_with_result(F&& f, Args&&... args) NOEXCEPT_SPEC
@@ -87,6 +90,38 @@ namespace Sqlt3
 		auto connection = unique_connection(connect);
 		if(result_is_error(code)) throw_error(code, connect);
 		return connection;
+	}
+
+	void sqlite3_backup_finish(unique_backup&& b)
+	{
+		invoke_with_result_error(::sqlite3_backup_finish, b.get());
+		b.release();
+	}
+	unique_backup sqlite3_backup_init(sqlite3_t dest_con,
+									  utf8_string_in_t dest_db,
+									  sqlite3_t src_con,
+									  utf8_string_in_t src_db)
+	{
+		auto backup_ptr = invoke_with_result(::sqlite3_backup_init, dest_con,
+											 dest_db, src_con, src_db);
+		if(backup_ptr == nullptr) {
+			throw_error(::sqlite3_extended_errcode(dest_con), dest_con);
+		}
+
+		return unique_backup{backup_ptr};
+	}
+	int sqlite3_backup_pagecount(sqlite3_backup_t b) NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_backup_pagecount, b);
+	}
+	int sqlite3_backup_remaining(sqlite3_backup_t b) NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_backup_remaining, b);
+	}
+	step_result_t sqlite3_backup_step(sqlite3_backup_t b, int n)
+	{
+		return static_cast<step_result_t>(
+			invoke_with_result_error(::sqlite3_backup_step, b, n));
 	}
 
 	void sqlite3_bind(sqlite3_stmt_t s, int i, const void* blob, int bytes,
@@ -364,7 +399,7 @@ namespace Sqlt3
 	}
 
 	void sqlite3_shutdown(detail::initialize_t init)
-	{	
+	{
 	}
 
 	std::tuple<int, int> sqlite3_status(status_t s, bool r)
@@ -393,11 +428,8 @@ namespace Sqlt3
 
 	step_result_t sqlite3_step(sqlite3_stmt_t s)
 	{
-		auto code = invoke_with_result(::sqlite3_step, s);
-		if(result_is_error(code)) {
-			throw_error(code);
-		}
-		return static_cast<step_result_t>(code);
+		return static_cast<step_result_t>(
+			invoke_with_result_error(::sqlite3_step, s));
 	}
 
 	bool sqlite3_stmt_busy(sqlite3_stmt_t s) NOEXCEPT_SPEC
@@ -464,6 +496,10 @@ namespace Sqlt3
 			if(!moved) {
 				::sqlite3_shutdown();
 			}
+		}
+		void BackupDeleter::operator()(pointer p) const
+		{
+			::sqlite3_backup_finish(p);
 		}
 		void ConnectionDeleter::operator()(pointer p) const NOEXCEPT_SPEC
 		{
