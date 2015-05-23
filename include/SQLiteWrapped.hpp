@@ -196,6 +196,12 @@ namespace Sqlt3
 			~initialize_t() NOEXCEPT_SPEC;
 		};
 
+		enum class db_status_t : int
+		{
+		};
+		enum class limit_t : int
+		{
+		};
 		enum class step_result_t : int
 		{
 		};
@@ -203,6 +209,9 @@ namespace Sqlt3
 		{
 		};
 		enum class type_t : int
+		{
+		};
+		enum class scan_status_t : int
 		{
 		};
 		enum class status_t : int
@@ -213,6 +222,17 @@ namespace Sqlt3
 		};
 	}
 
+	///<summary>
+	///A flag type that controls what data is reported from
+	///<see cref="sqlite3_db_status"/>.
+	///</summary>
+	ALIAS_TYPE(detail::db_status_t, db_status_t);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/c_limit_attached.html"/>.
+	///A flag type that controls which runtime limits to set in a call to
+	///<see cref="sqlite3_limit"/>.
+	///</summary>
+	ALIAS_TYPE(detail::limit_t, limit_t);
 	///<summary>
 	/// Alias of a function pointer type that represents a generic destructor
 	/// for data passed to SQLite3.
@@ -228,6 +248,11 @@ namespace Sqlt3
 	/// The result of stepping a prepared statement or backup process.
 	///</summary>
 	ALIAS_TYPE(detail::step_result_t, step_result_t);
+	///<summary>
+	///A flag type to control what information is reported from 
+	///<see cref="sqlite3_stmt_scanstatus"/>.
+	///</summary>
+	ALIAS_TYPE(detail::scan_status_t, scan_status_t);
 	///<summary>
 	/// A flag type that controls what data is reported from
 	///<see cref="sqlite3_status"/> and <see cref="sqlite3_status64"/>.
@@ -284,6 +309,54 @@ namespace Sqlt3
 	/// An alias of UTF-16 output strings.
 	///</summary>
 	ALIAS_TYPE(std::u16string, utf16_string_out_t);
+
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_lookaside_used =
+		db_status_t(SQLITE_DBSTATUS_LOOKASIDE_USED);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_cache_used =
+		db_status_t(SQLITE_DBSTATUS_CACHE_USED);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_schema_used =
+		db_status_t(SQLITE_DBSTATUS_SCHEMA_USED);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_stmt_used =
+		db_status_t(SQLITE_DBSTATUS_STMT_USED);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_lookaside_hit =
+		db_status_t(SQLITE_DBSTATUS_LOOKASIDE_HIT);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_miss_size =
+		db_status_t(SQLITE_DBSTATUS_LOOKASIDE_MISS_SIZE);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_miss_full =
+		db_status_t(SQLITE_DBSTATUS_LOOKASIDE_MISS_FULL);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_cache_hit =
+		db_status_t(SQLITE_DBSTATUS_CACHE_HIT);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_cache_miss =
+		db_status_t(SQLITE_DBSTATUS_CACHE_MISS);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_cache_write =
+		db_status_t(SQLITE_DBSTATUS_CACHE_WRITE);
+	const CONSTEXPR_SPEC auto sqlite_dbstatus_deferred_fks =
+		db_status_t(SQLITE_DBSTATUS_DEFERRED_FKS);
+
+	const CONSTEXPR_SPEC auto sqlite_limit_length =
+		limit_t(SQLITE_LIMIT_LENGTH);
+	const CONSTEXPR_SPEC auto sqlite_limit_sql_length =
+		limit_t(SQLITE_LIMIT_SQL_LENGTH);
+	const CONSTEXPR_SPEC auto sqlite_limit_column =
+		limit_t(SQLITE_LIMIT_COLUMN);
+	const CONSTEXPR_SPEC auto sqlite_limit_expr_depth =
+		limit_t(SQLITE_LIMIT_EXPR_DEPTH);
+	const CONSTEXPR_SPEC auto sqlite_limit_compound_select =
+		limit_t(SQLITE_LIMIT_COMPOUND_SELECT);
+	const CONSTEXPR_SPEC auto sqlite_limit_vdbe_op =
+		limit_t(SQLITE_LIMIT_VDBE_OP);
+	const CONSTEXPR_SPEC auto sqlite_limit_function_arg =
+		limit_t(SQLITE_LIMIT_FUNCTION_ARG);
+	const CONSTEXPR_SPEC auto sqlite_limit_attached =
+		limit_t(SQLITE_LIMIT_ATTACHED);
+	const CONSTEXPR_SPEC auto sqlite_limit_like_pattern_length =
+		limit_t(SQLITE_LIMIT_LIKE_PATTERN_LENGTH);
+	const CONSTEXPR_SPEC auto sqlite_limit_variable_number =
+		limit_t(SQLITE_LIMIT_VARIABLE_NUMBER);
+	const CONSTEXPR_SPEC auto sqlite_limit_trigger_depth =
+		limit_t(SQLITE_LIMIT_TRIGGER_DEPTH);
+	const CONSTEXPR_SPEC auto sqlite_limit_worker_threads =
+		limit_t(SQLITE_LIMIT_WORKER_THREADS);
 
 	///<summary>
 	/// A constant that takes the place of a custom destructor for some
@@ -369,6 +442,13 @@ namespace Sqlt3
 	const CONSTEXPR_SPEC auto sqlite_blob = type_t(SQLITE_BLOB);
 	const CONSTEXPR_SPEC auto sqlite_null = type_t(SQLITE_NULL);
 
+	const CONSTEXPR_SPEC auto sqlite_scanstat_nloop = scan_status_t(SQLITE_SCANSTAT_NLOOP);
+	const CONSTEXPR_SPEC auto sqlite_scanstat_nvisit = scan_status_t(SQLITE_SCANSTAT_NVISIT);
+	const CONSTEXPR_SPEC auto sqlite_scanstat_est = scan_status_t(SQLITE_SCANSTAT_EST);
+	const CONSTEXPR_SPEC auto sqlite_scanstat_name = scan_status_t(SQLITE_SCANSTAT_NAME);
+	const CONSTEXPR_SPEC auto sqlite_scanstat_explain = scan_status_t(SQLITE_SCANSTAT_EXPLAIN);
+	const CONSTEXPR_SPEC auto sqlite_scanstat_selectid = scan_status_t(SQLITE_SCANSTAT_SELECTID);
+
 	const CONSTEXPR_SPEC auto sqlite_status_memory_used =
 		status_t(SQLITE_STATUS_MEMORY_USED);
 	const CONSTEXPR_SPEC auto sqlite_status_pagecache_used =
@@ -398,6 +478,49 @@ namespace Sqlt3
 		status_counter_t(SQLITE_STMTSTATUS_AUTOINDEX);
 	const CONSTEXPR_SPEC auto sqlite_stmtstatus_vm_step =
 		status_counter_t(SQLITE_STMTSTATUS_VM_STEP);
+
+	namespace detail
+	{
+		template<scan_status_t Status>
+		struct scan_status_result_t
+		{};
+		template<>
+		struct scan_status_result_t<sqlite_scanstat_nloop>
+		{
+			ALIAS_TYPE(sqlite3_int64, result_type);
+			ALIAS_TYPE(result_type, param_type);
+		};
+		template<>
+		struct scan_status_result_t<sqlite_scanstat_nvisit>
+		{
+			ALIAS_TYPE(sqlite3_int64, result_type);
+			ALIAS_TYPE(result_type, param_type);
+		};
+		template<>
+		struct scan_status_result_t<sqlite_scanstat_est>
+		{
+			ALIAS_TYPE(double, result_type);
+			ALIAS_TYPE(result_type, param_type);
+		};
+		template<>
+		struct scan_status_result_t<sqlite_scanstat_name>
+		{
+			ALIAS_TYPE(utf8_string_out_t, result_type);
+			ALIAS_TYPE(utf8_string_in_t, param_type);
+		};
+		template<>
+		struct scan_status_result_t<sqlite_scanstat_explain>
+		{
+			ALIAS_TYPE(utf8_string_out_t, result_type);
+			ALIAS_TYPE(utf8_string_in_t, param_type);
+		};
+		template<>
+		struct scan_status_result_t<sqlite_scanstat_selectid>
+		{
+			ALIAS_TYPE(int, result_type);
+			ALIAS_TYPE(result_type, param_type);
+		};
+	}
 
 	///<summary>
 	///<see
@@ -603,6 +726,34 @@ namespace Sqlt3
 	void sqlite3_bind_zeroblob(sqlite3_stmt_t stmt, int index, int bytes);
 
 	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/busy_handler.html"/>.
+	///Sets a callback to be invoked whenever an attempt is made to access a 
+	///table associated with the specified database connection when another 
+	///thread or process has the table locked.
+	///</summary>
+	///<param name="connection">Database connection</param>
+	///<param name="callback">Callback function.
+	///Arg1: <paramref name="data"/>.
+	///Arg2: The number of times the callback has been invoked for the same
+	///locking event.
+	///Result: Non-zero to retry accessing the database, zero to give up and
+	///report an error.
+	///</param>
+	///<param name="data">Data to pass to the callback.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_busy_handler(sqlite3_t connection, int (*callback)(void*, int),
+							  void* data);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/busy_timeout.html"/>.
+	///Sets a busy handler that sleeps for the specified number of milliseconds
+	///when a table associated with the provided database conenction is locked.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="milliseconds">Sleep time until error is reported.</param>
+	///<exception name="std::runtime_error"/>
+	void sqlite3_busy_timeout(sqlite3_t connection, int milliseconds);
+
+	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/changes.html"/>.
 	/// This function returns the number of rows modified, inserted or deleted
 	/// by the most recently completed INSERT, UPDATE or DELETE statement on the
@@ -741,6 +892,80 @@ namespace Sqlt3
 	/// name of the column is unspecified and may change from one release of
 	/// SQLite to the next. </remarks>
 	utf16_string_out_t sqlite3_column_name16(sqlite3_stmt_t stmt, int column);
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_database_name.html"/>.
+	///Retrieves the name of the database the specified column of the 
+	///provided prepared statement belongs to. The result column in question 
+	///must be the result of a SELECT statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Column index.</param>
+	///<returns>The name of the database.</returns>
+	///<exception name="std::runtime_error"/>
+	utf8_string_out_t sqlite3_column_database_name(sqlite3_stmt_t stmt,
+		int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_database_name.html"/>.
+	///Retrieves the name of the database the specified column of the 
+	///provided prepared statement belongs to. The result column in question 
+	///must be the result of a SELECT statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Column index.</param>
+	///<returns>The name of the database.</returns>
+	///<exception name="std::runtime_error"/>
+	utf16_string_out_t sqlite3_column_database_name16(sqlite3_stmt_t stmt,
+		int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_database_name.html"/>.
+	///Retrieves the name of the specified column of the provided prepared 
+	///statement belongs to. The result column in question must be the result 
+	///of a SELECT statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Column index.</param>
+	///<returns>The name of the column.</returns>
+	///<exception name="std::runtime_error"/>
+	utf8_string_out_t sqlite3_column_origin_name(sqlite3_stmt_t stmt,
+												 int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_database_name.html"/>.
+	///Retrieves the name of the specified column of the 
+	///provided prepared statement belongs to. The result column in question 
+	///must be the result of a SELECT statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Column index.</param>
+	///<returns>The name of the column.</returns>
+	///<exception name="std::runtime_error"/>
+	utf16_string_out_t sqlite3_column_origin_name16(sqlite3_stmt_t stmt,
+		int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_database_name.html"/>.
+	///Retrieves the name of the table the specified column of the 
+	///provided prepared statement belongs to. The result column in question 
+	///must be the result of a SELECT statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Column index.</param>
+	///<returns>The name of the table.</returns>
+	///<exception name="std::runtime_error"/>
+	utf8_string_out_t sqlite3_column_table_name(sqlite3_stmt_t stmt,
+												int column);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/column_database_name.html"/>.
+	///Retrieves the name of the table the specified column of the 
+	///provided prepared statement belongs to. The result column in question 
+	///must be the result of a SELECT statement.
+	///</summary>
+	///<param name="stmt">Prepared statement.</param>
+	///<param name="column">Column index.</param>
+	///<returns>The name of the table.</returns>
+	///<exception name="std::runtime_error"/>
+	utf16_string_out_t sqlite3_column_table_name16(sqlite3_stmt_t stmt,
+												   int column);
+
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/column_blob.html"/>.
 	/// Retrieves a UTF-8 string result from the provided column of a prepared
@@ -785,6 +1010,54 @@ namespace Sqlt3
 										 int column) NOEXCEPT_SPEC;
 
 	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/commit_hook.html"/>.
+	///Registers a callback to be invoked whenever a transaction is committed.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="callback">Callback for commits.
+	///Arg 1: <paramref name="data"/>.
+	///Result: Non-zero to turn the commit into a rollback.
+	///</param>
+	///<param name="data">Data to pass to the callback.</param>
+	///<returns>The previous data passed in through <paramref name="data"/>.
+	///</returns>
+	void* sqlite3_commit_hook(sqlite3_t connection, int (*callback)(void*),
+							  void* data) NOEXCEPT_SPEC;
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/complete.html"/>.
+	///Determines whether the provided SQL text forms a complete SQL statement. 
+	///</summary>
+	///<param name="sql">SQL text.</param>
+	///<returns>Whether the text forms a complete statement.</returns>
+	///<exception name="std::runtime_error"/>
+	bool sqlite3_complete(utf8_string_in_t sql);
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/complete.html"/>.
+	///Determines whether the provided SQL text forms a complete SQL statement. 
+	///</summary>
+	///<param name="sql">SQL text.</param>
+	///<returns>Whether the text forms a complete statement.</returns>
+	///<exception name="std::runtime_error"/>
+	bool sqlite3_complete16(utf16_string_in_t sql);
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/db_status.html"/>.
+	/// Retrieves runtime status information about the provided database
+	/// connection.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="op">The database operation to retrieve status information
+	///about.</param>
+	///<param name="reset">Whether to reset the 'highest instantaneous'
+	///value.</param>
+	///<returns>The current value and the highest instantaneous value of the
+	///desired operation.</returns>
+	///<exception name="std::runtime_error"/>
+	std::tuple<int, int> sqlite3_db_status(sqlite3_t connection, db_status_t op,
+										   bool reset);
+
+	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/exec.html"/>.
 	/// Wraps calls to <see cref="sqlite3_prepare_v2"/>, <see
 	/// cref="sqlite3_step"/> and <see cref="sqlite3_finalize"/> that allows an
@@ -824,6 +1097,27 @@ namespace Sqlt3
 	///</returns>
 	///<exception name="std::runtime_error"/>
 	detail::initialize_t sqlite3_initialize();
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/interrupt.html"/>.
+	///Aborts any pending database operations.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	void sqlite3_interrupt(sqlite3_t connection) NOEXCEPT_SPEC;
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/limit.html"/>.
+	///Set a runtime limit on the specified constructs for the specified 
+	///database connection.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="limit">The construct to limit.</param>
+	///<param name="newValue">The new limit. A negative value will not change
+	///the current limit.</param>
+	///<returns>The previous limit that was set for the specified construct.
+	///</returns>
+	int sqlite3_limit(sqlite3_t connection, limit_t limit,
+					  int newValue) NOEXCEPT_SPEC;
 
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/next_stmt.html"/>.
@@ -930,6 +1224,26 @@ namespace Sqlt3
 						  void* data) NOEXCEPT_SPEC;
 
 	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/progress_handler.html"/>.
+	///Register a callback that will be invoked during long running calls to
+	///<see cref="sqlite3_exec"/> and <see cref="sqlite3_step"/>.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="instructions">The number of Virtual Machine Instructions
+	///that should be evaluated between successive invocations of the callback.
+	///If less than 1, the progress handler is disabled.</param>
+	///<param name="callback">Progress callback. nullptr disables the progress
+	///handler.
+	///Arg 1: <paramref name="data"/>.
+	///Result: Non-zero interrupts the current operation that is currently
+	///active.
+	///</param>
+	///<param name="data">Data to pass to the callback.</param>
+	void sqlite3_progress_handler(sqlite3_t connection, int instructions,
+								  int (*callback)(void*),
+								  void* data) NOEXCEPT_SPEC;
+
+	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/reset.html"/>.
 	///Resets a prepared statement to its initial state. Does not affect values 
 	///bound to bind points of the provided prepared statement, for that, you
@@ -938,6 +1252,20 @@ namespace Sqlt3
 	///<param name="stmt">Prepared statement.</param>
 	///<exception name="std::runtime_error"/>
 	void sqlite3_reset(sqlite3_stmt_t stmt);
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/commit_hook.html"/>.
+	///Registers a callback to be invoked whenever a transaction is rolled back.
+	///</summary>
+	///<param name="connection">Database connection.</param>
+	///<param name="callback">Callback for rollbacks.
+	///Arg 1: <paramref name="data"/>.
+	///</param>
+	///<param name="data">Data to pass to the callback.</param>
+	///<returns>The previous data passed in through <paramref name="data"/>.
+	///</returns>
+	void* sqlite3_rollback_hook(sqlite3_t connection, void (*callback)(void*),
+								void* data) NOEXCEPT_SPEC;
 
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/initialize.html"/>.
@@ -1012,6 +1340,62 @@ namespace Sqlt3
 	int sqlite3_stmt_status(sqlite3_stmt_t stmt, status_counter_t status,
 							bool reset) NOEXCEPT_SPEC;
 
+	namespace detail
+	{
+		///<summary>
+		///Helper function for retrieving data for the 
+		///<see cref="sqlite3_stmt_scanstatus"/> in an opaque way.
+		///</summary>
+		///<param name="statement">Prepared statement.</param>
+		///<param name="index">Loop index.</param>
+		///<param name="status">Status information to retrieve.</param>
+		///<param name="data">Opaque data (output).</param>
+		///<exception name="std::runtime_error"/>
+		void get_scanstatus(sqlite3_stmt_t statement, int index,
+							scan_status_t status, void* data);
+	}
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/stmt_scanstatus_reset.html"/>.
+	///Retrieves information about the predicted and measured performance of
+	///the provided prepared statement.
+	///</summary>
+	///<param name="statement">Prepared statement.</param>
+	///<param name="index">The 0-based index of a loop in the prepared
+	///statement.</param>
+	///<returns>
+	///<see cref="https://www.sqlite.org/c3ref/c_scanstat_est.html"/>.
+	///What this function returns depends on the provided template argument.
+	///</returns>
+	///<exception name="std::runtime_error"/>
+	///<example><code>
+	///auto name =
+	///Sqlt3::sqlite3_stmt_scanstatus&lt;sqlite_scanstat_name&gt(stmt, index);
+	///</code></example>
+	template <scan_status_t Status>
+	typename detail::scan_status_result_t<Status>::result_type
+		sqlite3_stmt_scanstatus(sqlite3_stmt_t statement, int index)
+	{
+		ALIAS_TYPE(WRAP_TEMPLATE(typename detail::scan_status_result_t<
+					   Status>::result_type),
+				   result_t);
+		ALIAS_TYPE(WRAP_TEMPLATE(typename detail::scan_status_result_t<
+					   Status>::param_type),
+				   param_t);
+
+		param_t val(0);
+		detail::get_scanstatus(statement, index, Status, &val);
+
+		return result_t(val);
+	}
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/stmt_scanstatus_reset.html"/>.
+	///Zeros all <see ref=""/> related even counters.
+	///</summary>
+	///<param name="statement">Prepared statement to reset the counters of.
+	///</param>
+	void sqlite3_stmt_scanstatus_reset(sqlite3_stmt_t statement) NOEXCEPT_SPEC;
+
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/table_column_metadata.html"/>.
 	///Retrieve the metadata of a column in table in a database.
@@ -1038,6 +1422,13 @@ namespace Sqlt3
 	///<param name="connection">Database connection.</param>
 	///<returns>Total changes.</returns>
 	int sqlite3_total_changes(sqlite3_t connection) NOEXCEPT_SPEC;
+
+	///<summary>
+	///<see cref="https://www.sqlite.org/c3ref/threadsafe.html"/>.
+	///Checks whether the underlying library was compiled in a thread-safe mode.
+	///</summary>
+	///<returns>Whether the library is thread-safe.</returns>
+	bool sqlite3_threadsafe() NOEXCEPT_SPEC;
 
 	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/profile.html"/>.

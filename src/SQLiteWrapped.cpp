@@ -52,13 +52,13 @@ namespace Sqlt3
 	}
 
 	template <typename... Args>
-	void throw_error(int code, const Args&...)
+	inline void throw_error(int code, const Args&...)
 	{
 		throw std::runtime_error(error_string_without_details(code) + ": " +
 								 ::sqlite3_errstr(code));
 	}
 	template <typename... Args>
-	void throw_error(int code, sqlite3_t db, const Args&...)
+	inline void throw_error(int code, sqlite3_t db, const Args&...)
 	{
 		throw std::runtime_error(error_string_without_details(code) + ": " +
 								 ::sqlite3_errmsg(db));
@@ -203,6 +203,15 @@ namespace Sqlt3
 		invoke_with_result_error(::sqlite3_bind_zeroblob, s, i, n);
 	}
 
+	void sqlite3_busy_handler(sqlite3_t c, int (*callback)(void*, int), void* d)
+	{
+		invoke_with_result_error(::sqlite3_busy_handler, c, callback, d);
+	}
+	void sqlite3_busy_timeout(sqlite3_t c, int ms)
+	{
+		invoke_with_result_error(::sqlite3_busy_timeout, c, ms);
+	}
+
 	int sqlite3_changes(sqlite3_t c) NOEXCEPT_SPEC
 	{
 		return invoke_with_result(::sqlite3_changes, c);
@@ -239,6 +248,7 @@ namespace Sqlt3
 	{
 		return invoke_with_result(::sqlite3_column_count, s);
 	}
+
 	double sqlite3_column_double(sqlite3_stmt_t s, int i) NOEXCEPT_SPEC
 	{
 		return invoke_with_result(::sqlite3_column_double, s, i);
@@ -265,6 +275,62 @@ namespace Sqlt3
 
 		return static_cast<utf16_string_out_t::const_pointer>(result);
 	}
+#if defined(SQLITE_ENABLE_COLUMN_METADATA)
+	utf8_string_out_t sqlite3_column_database_name(sqlite3_stmt_t s, int i)
+	{
+		auto str = invoke_with_result(::sqlite3_column_database_name, s, i);
+		if(str == nullptr) {
+			return utf8_string_out_t{};
+		}
+
+		return str;
+	}
+	utf16_string_out_t sqlite3_column_database_name16(sqlite3_stmt_t s, int i)
+	{
+		auto str = invoke_with_result(::sqlite3_column_database_name16, s, i);
+		if(str == nullptr) {
+			return utf16_string_out_t{};
+		}
+
+		return static_cast<utf16_string_out_t::const_pointer>(str);
+	}
+	utf8_string_out_t sqlite3_column_origin_name(sqlite3_stmt_t s, int i)
+	{
+		auto str = invoke_with_result(::sqlite3_column_origin_name, s, i);
+		if(str == nullptr) {
+			return utf8_string_out_t{};
+		}
+
+		return str;
+	}
+	utf16_string_out_t sqlite3_column_origin_name16(sqlite3_stmt_t s, int i)
+	{
+		auto str = invoke_with_result(::sqlite3_column_origin_name16, s, i);
+		if(str == nullptr) {
+			return utf16_string_out_t{};
+		}
+
+		return static_cast<utf16_string_out_t::const_pointer>(str);
+	}
+	utf8_string_out_t sqlite3_column_table_name(sqlite3_stmt_t s, int i)
+	{
+		auto str = invoke_with_result(::sqlite3_column_table_name, s, i);
+		if(str == nullptr) {
+			return utf8_string_out_t{};
+		}
+
+		return str;
+	}
+	utf16_string_out_t sqlite3_column_table_name16(sqlite3_stmt_t s, int i)
+	{
+		auto str = invoke_with_result(::sqlite3_column_table_name16, s, i);
+		if(str == nullptr) {
+			return utf16_string_out_t{};
+		}
+
+		return static_cast<utf16_string_out_t::const_pointer>(str);
+	}
+#endif// defined(SQLITE_ENABLE_COLUMN_METADATA)
 	utf8_string_out_t sqlite3_column_text(sqlite3_stmt_t s, int i)
 	{
 		auto result = invoke_with_result(::sqlite3_column_text, s, i);
@@ -289,12 +355,49 @@ namespace Sqlt3
 		return invoke_with_result(::sqlite3_column_value, s, i);
 	}
 
+	void* sqlite3_commit_hook(sqlite3_t c, int (*callback)(void*),
+							  void* d) NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_commit_hook, c, callback, d);
+	}
+
+	bool sqlite3_complete(utf8_string_in_t sql)
+	{
+		auto code = invoke_with_result(::sqlite3_complete, sql);
+
+		if(code != 0 && code != 1) {
+			throw_error(code);
+		}
+		return code != 0;
+	}
+	bool sqlite3_complete16(utf16_string_in_t sql)
+	{
+		auto code = invoke_with_result(::sqlite3_complete16, sql);
+
+		if(code != 0 && code != 1) {
+			throw_error(code);
+		}
+		return code != 0;
+	}
+
+	std::tuple<int, int> sqlite3_db_status(sqlite3_t c, db_status_t o, bool r)
+	{
+		ALIAS_TYPE(WRAP_TEMPLATE(std::underlying_type<db_status_t>::type),
+				   inner_t);
+		int current = 0, highwater = 0;
+		invoke_with_result_error(::sqlite3_db_status, c,
+								 static_cast<inner_t>(o), &current, &highwater,
+								 static_cast<int>(r));
+
+		return std::make_tuple(current, highwater);
+	}
+
 	void sqlite3_exec(sqlite3_t c, utf8_string_in_t sql,
-					  int (*callback)(void*, int, char**, char**), void* arg1)
+					  int (*callback)(void*, int, char**, char**), void* d)
 	{
 		char* errorOut = nullptr;
-		auto code = invoke_with_result(::sqlite3_exec, c, sql, callback, arg1,
-									   &errorOut);
+		auto code =
+			invoke_with_result(::sqlite3_exec, c, sql, callback, d, &errorOut);
 		if(result_is_error(code)) {
 			auto err = error_string_without_details(code) + ": " + errorOut;
 			sqlite3_free(errorOut);
@@ -311,6 +414,18 @@ namespace Sqlt3
 	{
 		invoke_with_result_error(::sqlite3_initialize);
 		return {};
+	}
+
+	void sqlite3_interrupt(sqlite3_t c) NOEXCEPT_SPEC
+	{
+		invoke_with_result(::sqlite3_interrupt, c);
+	}
+
+	int sqlite3_limit(sqlite3_t c, limit_t l, int v) NOEXCEPT_SPEC
+	{
+		ALIAS_TYPE(WRAP_TEMPLATE(std::underlying_type<limit_t>::type), inner_t);
+		return invoke_with_result(::sqlite3_limit, c, static_cast<inner_t>(l),
+								  v);
 	}
 
 	sqlite3_stmt_t sqlite3_next_stmt(sqlite3_t c,
@@ -386,16 +501,28 @@ namespace Sqlt3
 									  sql));
 	}
 
-	void sqlite3_reset(sqlite3_stmt_t s)
-	{
-		invoke_with_result_error(::sqlite3_reset, s);
-	}
-
 	void* sqlite3_profile(sqlite3_t c, void (*callback)(void*, const char*,
 														sqlite3_uint64_t),
 						  void* d) NOEXCEPT_SPEC
 	{
 		return invoke_with_result(::sqlite3_profile, c, callback, d);
+	}
+
+	void sqlite3_progress_handler(sqlite3_t c, int inst, int (*callback)(void*),
+								  void* d) NOEXCEPT_SPEC
+	{
+		invoke_with_result(::sqlite3_progress_handler, c, inst, callback, d);
+	}
+
+	void sqlite3_reset(sqlite3_stmt_t s)
+	{
+		invoke_with_result_error(::sqlite3_reset, s);
+	}
+
+	void* sqlite3_rollback_hook(sqlite3_t c, void (*callback)(void*),
+								void* d) NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_rollback_hook, c, callback, d);
 	}
 
 	void sqlite3_shutdown(detail::initialize_t init)
@@ -451,6 +578,25 @@ namespace Sqlt3
 								  static_cast<int>(r));
 	}
 
+#if defined(SQLITE_ENABLE_STMT_SCANSTATUS)
+	namespace detail
+	{
+		void get_scanstatus(sqlite3_stmt_t s, int i, scan_status_t stat,
+							void* d)
+		{
+			ALIAS_TYPE(WRAP_TEMPLATE(std::underlying_type<scan_status_t>::type),
+					   inner_t);
+			invoke_with_result_error(::sqlite3_stmt_scanstatus, s, i,
+									 static_cast<inner_t>(stat), d);
+		}
+	}
+
+	void sqlite3_stmt_scanstatus_reset(sqlite3_stmt_t s) NOEXCEPT_SPEC
+	{
+		invoke_with_result(::sqlite3_stmt_scanstatus_reset, s);
+	}
+#endif// defined(SQLITE_ENABLE_STMT_SCANSTATUS)
+
 	std::tuple<utf8_string_out_t, utf8_string_out_t, bool, bool, bool>
 		sqlite3_table_column_metadata(sqlite3_t c, utf8_string_in_t db,
 									  utf8_string_in_t t, utf8_string_in_t col)
@@ -476,6 +622,11 @@ namespace Sqlt3
 						void* d) NOEXCEPT_SPEC
 	{
 		return invoke_with_result(::sqlite3_trace, c, callback, d);
+	}
+
+	bool sqlite3_threadsafe() NOEXCEPT_SPEC
+	{
+		return invoke_with_result(::sqlite3_threadsafe) != 0;
 	}
 
 	namespace detail
