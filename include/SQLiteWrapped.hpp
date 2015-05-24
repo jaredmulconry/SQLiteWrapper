@@ -1089,7 +1089,7 @@ namespace Sqlt3
 	void sqlite3_exec(sqlite3_t connection, utf8_string_in_t sql,
 					  int (*callback)(void*, int, char**, char**), void* data);
 
-	///<summary
+	///<summary>
 	///<see cref="https://www.sqlite.org/c3ref/finalize.html"/>.
 	/// Destroys a prepared statement.
 	///</summary>
@@ -1381,7 +1381,7 @@ namespace Sqlt3
 	///<exception name="std::runtime_error"/>
 	///<example><code>
 	/// auto name =
-	/// Sqlt3::sqlite3_stmt_scanstatus&lt;sqlite_scanstat_name&gt(stmt, index);
+	/// Sqlt3::sqlite3_stmt_scanstatus&lt;sqlite_scanstat_name&gt;(stmt, index);
 	///</code></example>
 	template <scan_status_t Status>
 	typename detail::scan_status_result_t<Status>::result_type
